@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusTab — Focus Mode Active</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="blocked.css" />
+</head>
+<body>
+
+  <!-- Wallpaper -->
+  <div id="blocked-wallpaper" class="wallpaper"></div>
+  <!-- Dark overlay -->
+  <div class="overlay"></div>
+
+  <!-- Centered Content -->
+  <main class="blocked-content">
+    <div class="blocked-icon" aria-hidden="true">🎯</div>
+    <h1 class="blocked-title">You're in Focus Mode</h1>
+    <p class="blocked-sub">Your focus today:</p>
+    <p id="blocked-focus-text" class="blocked-focus">Stay focused. You've got this.</p>
+    <button id="disable-focus-btn" class="disable-btn">Disable Focus Mode</button>
+  </main>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

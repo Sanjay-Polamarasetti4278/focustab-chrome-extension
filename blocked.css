@@ -1,0 +1,98 @@
+/* FocusTab — blocked.css */
+
+:root {
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --color-white:  rgba(255, 255, 255, 0.95);
+  --color-muted:  rgba(255, 255, 255, 0.55);
+  --color-card-bg: rgba(0, 0, 0, 0.45);
+  --color-card-border: rgba(255, 255, 255, 0.12);
+  --backdrop-blur: blur(14px);
+  --border-radius-pill: 999px;
+  --transition-default: 0.22s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: var(--font-family);
+  background: #0d0d1a;
+}
+
+.wallpaper {
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url('assets/default-wallpaper.jpg');
+  background-size: cover; background-position: center;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 1;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.blocked-content {
+  position: relative; z-index: 2;
+  width: 100%; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 24px;
+  text-align: center;
+  animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.blocked-icon { font-size: 3.5rem; line-height: 1; margin-bottom: 4px; }
+
+.blocked-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 300;
+  color: var(--color-white);
+  letter-spacing: -0.01em;
+}
+
+.blocked-sub {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-top: 8px;
+}
+
+.blocked-focus {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-weight: 300;
+  color: var(--color-white);
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.disable-btn {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-pill);
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 11px 28px;
+  cursor: pointer;
+  transition: background var(--transition-default), border-color var(--transition-default),
+              transform var(--transition-default);
+}
+
+.disable-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: scale(1.03);
+}

@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "FocusTab",
+  "version": "1.0",
+  "description": "Your personal productivity dashboard — replace new tab with focus, clarity, and calm.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html", "assets/default-wallpaper.jpg"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {}
+}

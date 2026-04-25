@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusTab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="newtab.css" />
+</head>
+<body>
+
+  <!-- Wallpaper -->
+  <div id="wallpaper" class="wallpaper"></div>
+  <!-- Dark Overlay -->
+  <div class="overlay"></div>
+
+  <!-- Focus Mode Toggle (fixed top-right) -->
+  <div class="topbar-right">
+    <button id="focus-mode-btn" class="focus-mode-btn" aria-label="Toggle Focus Mode" aria-pressed="false">
+      <span class="focus-mode-btn__icon">🎯</span>
+      <span id="focus-mode-label" class="focus-mode-btn__label">Focus Mode</span>
+    </button>
+  </div>
+
+  <!-- Main Dashboard -->
+  <main class="dashboard">
+
+    <!-- Clock + Focus Section -->
+    <section class="clock-section" aria-label="Clock, greeting and focus">
+      <div id="clock" class="clock" aria-live="polite">--:-- --</div>
+      <div id="date" class="date">Loading…</div>
+      <div id="greeting" class="greeting">Good morning…</div>
+
+      <!-- Focus Prompt -->
+      <div id="focus-prompt" class="focus-card hidden" role="dialog" aria-label="Set today's focus">
+        <p class="focus-card__question">
+          What is your main focus today, <span id="focus-prompt-name">Sanjay</span>?
+        </p>
+        <div class="focus-card__input-row" id="focus-input-row">
+          <input type="text" id="focus-input" class="focus-card__input"
+            placeholder="Enter your main focus…" maxlength="120" autocomplete="off" />
+          <button id="focus-submit-btn" class="focus-card__btn">Set Focus</button>
+        </div>
+      </div>
+
+      <!-- Focus Display -->
+      <div id="focus-display" class="focus-display hidden" aria-live="polite">
+        <span class="focus-display__label">Today's Focus</span>
+        <div class="focus-display__row">
+          <span id="focus-display-text" class="focus-display__text"></span>
+          <button id="focus-edit-btn" class="focus-display__edit" aria-label="Edit focus">✏️</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <!-- Task Panel (bottom-left) -->
+      <aside id="task-panel" class="task-panel" aria-label="Task list">
+        <h2 class="task-panel__title">Tasks</h2>
+        <input type="text" id="task-input" class="task-input"
+          placeholder="Add a task…" maxlength="200" autocomplete="off" />
+        <p id="task-limit-msg" class="task-limit-msg hidden">50 task limit reached.</p>
+        <ul id="task-list" class="task-list" role="list" aria-label="Your tasks"></ul>
+      </aside>
+
+      <!-- Gear Icon (bottom-right) -->
+      <div class="bottom-bar__right">
+        <button id="settings-btn" class="settings-gear-btn" aria-label="Open settings">⚙️</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Settings Overlay -->
+  <div id="settings-overlay" class="settings-overlay" aria-hidden="true"></div>
+
+  <!-- Settings Panel -->
+  <aside id="settings-panel" class="settings-panel" role="dialog"
+    aria-label="FocusTab Settings" aria-hidden="true">
+
+    <div class="settings-panel__header">
+      <h2 class="settings-panel__title">Settings</h2>
+      <button id="settings-close-btn" class="settings-panel__close" aria-label="Close settings">✕</button>
+    </div>
+
+    <div class="settings-panel__body">
+
+      <!-- Section A: Profile -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Your Profile</h3>
+        <label class="settings-label" for="settings-name-input">Your Name</label>
+        <input type="text" id="settings-name-input" class="settings-input"
+          maxlength="30" placeholder="Your name" autocomplete="off" />
+        <button id="settings-name-save" class="settings-btn-action">Save Name</button>
+        <p id="settings-name-msg" class="settings-msg" aria-live="polite"></p>
+      </section>
+
+      <!-- Section B: Wallpaper -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Background Wallpaper</h3>
+        <div id="wallpaper-preview" class="wallpaper-preview" aria-label="Current wallpaper preview"></div>
+        <input type="file" id="wallpaper-file-input" accept="image/*" style="display:none" aria-hidden="true" />
+        <div class="settings-btn-row">
+          <button id="wallpaper-upload-btn" class="settings-btn-action">Upload Image</button>
+          <button id="wallpaper-reset-btn" class="settings-btn-secondary">Reset to Default</button>
+        </div>
+        <p id="settings-wallpaper-msg" class="settings-msg" aria-live="polite"></p>
+      </section>
+
+      <!-- Section C: Block List -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Blocked Sites (Focus Mode)</h3>
+        <div id="block-list-chips" class="block-list-chips" role="list" aria-label="Blocked domains"></div>
+        <div class="settings-domain-row">
+          <input type="text" id="block-domain-input" class="settings-input"
+            placeholder="Add domain (e.g. reddit.com)" autocomplete="off" />
+          <button id="block-domain-add-btn" class="settings-btn-action">Add</button>
+        </div>
+        <p id="settings-block-msg" class="settings-msg" aria-live="polite"></p>
+        <button id="block-list-reset-btn" class="settings-btn-secondary">Reset to Defaults</button>
+      </section>
+
+    </div>
+  </aside>
+
+  <script src="newtab.js"></script>
+</body>
+</html>
