@@ -33,6 +33,12 @@
       <div id="date" class="date">Loading…</div>
       <div id="greeting" class="greeting">Good morning…</div>
 
+      <!-- Phase 6: Streak Counter -->
+      <div class="streak-display" id="streakDisplay">
+        <span class="streak-display__emoji">🔥</span>
+        <span id="streakText">Start your streak today!</span>
+      </div>
+
       <!-- Focus Prompt -->
       <div id="focus-prompt" class="focus-card hidden" role="dialog" aria-label="Set today's focus">
         <p class="focus-card__question">
@@ -53,6 +59,13 @@
           <button id="focus-edit-btn" class="focus-display__edit" aria-label="Edit focus">✏️</button>
         </div>
       </div>
+
+      <!-- Phase 5: Daily Quote -->
+      <div class="quote-section" id="quoteSection">
+        <span class="quote-section__label">Daily Quote</span>
+        <p class="quote-section__text" id="quoteText"></p>
+        <span class="quote-section__author" id="quoteAuthor"></span>
+      </div>
     </section>
 
     <!-- Bottom Bar -->
@@ -68,6 +81,17 @@
 
       <!-- Gear Icon (bottom-right) -->
       <div class="bottom-bar__right">
+        <!-- Phase 7: Pomodoro Timer -->
+        <div class="pomodoro-panel" id="pomodoroPanel">
+          <div class="pomodoro-panel__title">Pomodoro</div>
+          <div class="pomodoro-panel__timer" id="pomodoroTimer">25:00</div>
+          <div class="pomodoro-panel__mode" id="pomodoroMode">Focus</div>
+          <div class="pomodoro-panel__buttons">
+            <button class="pomodoro-btn" id="pomodoroStartBtn">▶ Start</button>
+            <button class="pomodoro-btn" id="pomodoroResetBtn">↺ Reset</button>
+          </div>
+          <div class="pomodoro-panel__message" id="pomodoroMessage"></div>
+        </div>
         <button id="settings-btn" class="settings-gear-btn" aria-label="Open settings">⚙️</button>
       </div>
     </div>

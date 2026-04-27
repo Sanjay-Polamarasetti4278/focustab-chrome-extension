@@ -776,3 +776,145 @@ body {
 .settings-domain-row .settings-input {
   flex: 1;
 }
+
+/* ════════════ PHASE 5: Daily Quote ════════════ */
+
+.quote-section {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: cardFadeIn 0.35s ease;
+  max-width: 560px;
+  text-align: center;
+}
+
+.quote-section__label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.quote-section__text {
+  font-size: clamp(0.85rem, 1.6vw, 1rem);
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+}
+
+.quote-section__author {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+/* ════════════ PHASE 6: Streak Counter ════════════ */
+
+.streak-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  animation: greetingFadeIn 0.7s 0.5s ease forwards;
+  opacity: 0;
+}
+
+.streak-display__emoji {
+  font-size: 0.9rem;
+}
+
+/* ════════════ PHASE 7: Pomodoro Timer ════════════ */
+
+.pomodoro-panel {
+  pointer-events: all;
+  width: 200px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: cardFadeIn 0.45s 0.2s ease both;
+}
+
+.pomodoro-panel__title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.pomodoro-panel__timer {
+  font-size: 2rem;
+  font-weight: 200;
+  color: var(--color-white);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.pomodoro-panel__mode {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  text-align: center;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pomodoro-panel__mode--break {
+  color: #66d9a0;
+}
+
+.pomodoro-panel__buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.pomodoro-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--border-radius-pill);
+  color: var(--color-white);
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 7px 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition-default), border-color var(--transition-default);
+}
+
+.pomodoro-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.pomodoro-btn--active {
+  background: rgba(255, 77, 77, 0.15);
+  border-color: rgba(255, 77, 77, 0.5);
+  color: #ff8080;
+}
+
+.pomodoro-panel__message {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #66d9a0;
+  min-height: 1em;
+  transition: opacity 0.3s ease;
+}

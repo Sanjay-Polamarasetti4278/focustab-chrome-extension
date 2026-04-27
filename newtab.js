@@ -160,7 +160,28 @@ async function handleFocusSubmit() {
     focusInputRowEl.classList.add('shake');
     return;
   }
-  await storageSet({ focusText: text, focusDate: getTodayDateString() });
+  
+  const today = getTodayDateString();
+  const yesterday = getYesterdayDateString();
+  const { streakCount, streakLastDate } = await storageGet(['streakCount', 'streakLastDate'], { streakCount: 0, streakLastDate: '' });
+  
+  let newStreakCount = streakCount;
+  if (streakLastDate === yesterday) {
+    newStreakCount += 1;
+  } else if (streakLastDate !== today) {
+    newStreakCount = 1;
+  }
+  
+  await storageSet({ 
+    focusText: text, 
+    focusDate: today,
+    streakCount: newStreakCount,
+    streakLastDate: today
+  });
+  
+  if (typeof updateStreakDisplay === 'function') {
+    updateStreakDisplay(newStreakCount);
+  }
   showFocusDisplay(text);
 }
 
@@ -495,6 +516,230 @@ function initSettings() {
 }
 
 /* ════════════════════════════════════════
+   Phase 6 — Daily Focus Streak Counter
+   ════════════════════════════════════════ */
+
+const streakTextEl = document.getElementById('streakText');
+
+function updateStreakDisplay(count) {
+  if (!streakTextEl) return;
+  if (count <= 0) {
+    streakTextEl.textContent = 'Start your streak today!';
+  } else if (count === 1) {
+    streakTextEl.textContent = '1 day streak';
+  } else {
+    streakTextEl.textContent = `${count} day streak`;
+  }
+}
+
+async function initStreak() {
+  const { streakCount } = await storageGet(['streakCount'], { streakCount: 0 });
+  updateStreakDisplay(streakCount);
+}
+
+function getYesterdayDateString() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* ════════════════════════════════════════
+   Phase 5 — Daily Motivational Quote
+   ════════════════════════════════════════ */
+
+const quotes = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { text: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+  { text: "Dream big and dare to fail.", author: "Norman Vaughan" },
+  { text: "Do one thing every day that scares you.", author: "Eleanor Roosevelt" },
+  { text: "What you get by achieving your goals is not as important as what you become.", author: "Zig Ziglar" },
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+  { text: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein" },
+  { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+  { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
+  { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+  { text: "An unexamined life is not worth living.", author: "Socrates" },
+  { text: "Spread love everywhere you go.", author: "Mother Teresa" },
+  { text: "When you reach the end of your rope, tie a knot in it and hang on.", author: "Franklin D. Roosevelt" },
+  { text: "Always remember that you are absolutely unique.", author: "Margaret Mead" },
+  { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
+  { text: "You will face many defeats in life, but never let yourself be defeated.", author: "Maya Angelou" },
+  { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
+  { text: "In the end, it's not the years in your life that count. It's the life in your years.", author: "Abraham Lincoln" },
+  { text: "Never let the fear of striking out keep you from playing the game.", author: "Babe Ruth" },
+  { text: "Life is either a daring adventure or nothing at all.", author: "Helen Keller" },
+  { text: "Many of life's failures are people who did not realize how close they were to success when they gave up.", author: "Thomas Edison" },
+  { text: "You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.", author: "Dr. Seuss" }
+];
+
+const quoteTextEl = document.getElementById('quoteText');
+const quoteAuthorEl = document.getElementById('quoteAuthor');
+
+function initDailyQuote() {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), 0, 0);
+  const diff = today - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  
+  const quote = quotes[dayOfYear % quotes.length];
+  
+  if (quoteTextEl && quoteAuthorEl) {
+    quoteTextEl.textContent = `"${quote.text}"`;
+    quoteAuthorEl.textContent = `— ${quote.author}`;
+  }
+}
+
+/* ════════════════════════════════════════
+   Phase 7 — Pomodoro Timer
+   ════════════════════════════════════════ */
+
+const FOCUS_SECONDS = 1500; // 25 mins
+const BREAK_SECONDS = 300;  // 5 mins
+
+let pomodoroTime = FOCUS_SECONDS;
+let pomodoroMode = 'Focus'; // 'Focus' or 'Break'
+let pomodoroInterval = null;
+let pomodoroIsRunning = false;
+
+const pomodoroTimerEl = document.getElementById('pomodoroTimer');
+const pomodoroModeEl = document.getElementById('pomodoroMode');
+const pomodoroStartBtnEl = document.getElementById('pomodoroStartBtn');
+const pomodoroResetBtnEl = document.getElementById('pomodoroResetBtn');
+const pomodoroMessageEl = document.getElementById('pomodoroMessage');
+
+function playBeep() {
+  try {
+    const ctx = new window.AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.frequency.value = 880;
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.8);
+  } catch (err) {
+    console.warn('[FocusTab] Web Audio API failed:', err);
+  }
+}
+
+function formatPomodoroTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updatePomodoroUI() {
+  if (pomodoroTimerEl) pomodoroTimerEl.textContent = formatPomodoroTime(pomodoroTime);
+  
+  if (pomodoroModeEl) {
+    pomodoroModeEl.textContent = pomodoroMode;
+    if (pomodoroMode === 'Break') {
+      pomodoroModeEl.classList.add('pomodoro-panel__mode--break');
+    } else {
+      pomodoroModeEl.classList.remove('pomodoro-panel__mode--break');
+    }
+  }
+
+  if (pomodoroStartBtnEl) {
+    if (pomodoroIsRunning) {
+      pomodoroStartBtnEl.innerHTML = '⏸ Pause';
+      pomodoroStartBtnEl.classList.add('pomodoro-btn--active');
+    } else {
+      pomodoroStartBtnEl.innerHTML = '▶ Start';
+      pomodoroStartBtnEl.classList.remove('pomodoro-btn--active');
+    }
+  }
+}
+
+function showPomodoroMessage(msg) {
+  if (!pomodoroMessageEl) return;
+  pomodoroMessageEl.textContent = msg;
+  pomodoroMessageEl.style.opacity = '1';
+  setTimeout(() => {
+    pomodoroMessageEl.style.opacity = '0';
+  }, 4000);
+}
+
+function stopPomodoroTimer() {
+  pomodoroIsRunning = false;
+  if (pomodoroInterval) {
+    clearInterval(pomodoroInterval);
+    pomodoroInterval = null;
+  }
+}
+
+function handlePomodoroTick() {
+  if (pomodoroTime > 0) {
+    pomodoroTime--;
+    updatePomodoroUI();
+  } else {
+    stopPomodoroTimer();
+    playBeep();
+    
+    if (pomodoroMode === 'Focus') {
+      pomodoroMode = 'Break';
+      pomodoroTime = BREAK_SECONDS;
+      showPomodoroMessage('Break time! 🎉');
+    } else {
+      pomodoroMode = 'Focus';
+      pomodoroTime = FOCUS_SECONDS;
+      showPomodoroMessage('Back to focus! 💪');
+    }
+    updatePomodoroUI();
+  }
+}
+
+function startPomodoro() {
+  if (!pomodoroIsRunning) {
+    pomodoroIsRunning = true;
+    pomodoroInterval = setInterval(handlePomodoroTick, 1000);
+    updatePomodoroUI();
+  }
+}
+
+function pausePomodoro() {
+  stopPomodoroTimer();
+  updatePomodoroUI();
+}
+
+function togglePomodoro() {
+  if (pomodoroIsRunning) {
+    pausePomodoro();
+  } else {
+    startPomodoro();
+  }
+}
+
+function resetPomodoro() {
+  stopPomodoroTimer();
+  pomodoroMode = 'Focus';
+  pomodoroTime = FOCUS_SECONDS;
+  if (pomodoroMessageEl) pomodoroMessageEl.textContent = '';
+  updatePomodoroUI();
+}
+
+function initPomodoro() {
+  if (pomodoroStartBtnEl) {
+    pomodoroStartBtnEl.addEventListener('click', togglePomodoro);
+  }
+  if (pomodoroResetBtnEl) {
+    pomodoroResetBtnEl.addEventListener('click', resetPomodoro);
+  }
+  updatePomodoroUI();
+}
+
+/* ════════════════════════════════════════
    Storage Seeding
    ════════════════════════════════════════ */
 
@@ -521,6 +766,9 @@ async function init() {
   initTaskList();
   await initFocusMode();
   initSettings();
+  initDailyQuote();
+  await initStreak();
+  initPomodoro();
 }
 
 if (document.readyState === 'loading') {
