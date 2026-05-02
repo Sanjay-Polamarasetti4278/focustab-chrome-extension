@@ -182,6 +182,9 @@ async function handleFocusSubmit() {
   if (typeof updateStreakDisplay === 'function') {
     updateStreakDisplay(newStreakCount);
   }
+  if (typeof trackFocusSet === 'function') {
+    await trackFocusSet(text, newStreakCount);
+  }
   showFocusDisplay(text);
 }
 
@@ -285,7 +288,14 @@ async function addTask(text) {
 
 async function toggleTask(id) {
   const t = tasks.find(t => t.id === id);
-  if (t) { t.done = !t.done; await persistTasks(); renderAllTasks(); }
+  if (t) { 
+    t.done = !t.done; 
+    await persistTasks(); 
+    renderAllTasks(); 
+    if (typeof trackTaskCompleted === 'function') {
+      await trackTaskCompleted(t.done);
+    }
+  }
 }
 
 async function deleteTask(id) {
@@ -691,6 +701,9 @@ function handlePomodoroTick() {
       pomodoroMode = 'Break';
       pomodoroTime = BREAK_SECONDS;
       showPomodoroMessage('Break time! 🎉');
+      if (typeof trackPomodoroSession === 'function') {
+        trackPomodoroSession();
+      }
     } else {
       pomodoroMode = 'Focus';
       pomodoroTime = FOCUS_SECONDS;
@@ -740,6 +753,347 @@ function initPomodoro() {
 }
 
 /* ════════════════════════════════════════
+   Phase 8 — Daily Analytics Data Collection
+   ════════════════════════════════════════ */
+
+let sessionStartTime = Date.now();
+
+async function getAnalyticsLog() {
+  const { analyticsLog } = await storageGet(['analyticsLog'], { analyticsLog: {} });
+  return analyticsLog;
+}
+
+async function saveAnalyticsLog(log) {
+  await storageSet({ analyticsLog: log });
+}
+
+function getDayOfWeek() {
+  const d = new Date();
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[d.getDay()];
+}
+
+async function initDailyAnalytics() {
+  const today = getTodayDateString();
+  const log = await getAnalyticsLog();
+  
+  let changed = false;
+
+  // Data Retention: Keep only last 90 days
+  const dates = Object.keys(log).sort();
+  if (dates.length > 90) {
+    const datesToDelete = dates.slice(0, dates.length - 90);
+    datesToDelete.forEach(d => {
+      delete log[d];
+      changed = true;
+    });
+  }
+
+  // Initialize today if not exists
+  if (!log[today]) {
+    log[today] = {
+      date: today,
+      dayOfWeek: getDayOfWeek(),
+      focusSet: false,
+      focusText: "",
+      tasksCompleted: 0,
+      pomodoroSessions: 0,
+      timeInExtension: 0,
+      streakCount: 0
+    };
+    changed = true;
+  }
+  
+  if (changed) {
+    await saveAnalyticsLog(log);
+  }
+}
+
+function updateAnalyticsTime() {
+  const today = getTodayDateString();
+  storageGet(['analyticsLog'], { analyticsLog: {} }).then(({ analyticsLog }) => {
+    if (analyticsLog[today]) {
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - sessionStartTime) / 1000);
+      if (elapsedSeconds > 0) {
+        analyticsLog[today].timeInExtension += elapsedSeconds;
+        sessionStartTime = now; // Reset to avoid double counting
+        storageSet({ analyticsLog });
+      }
+    }
+  });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    updateAnalyticsTime();
+  } else {
+    sessionStartTime = Date.now();
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  updateAnalyticsTime();
+});
+
+async function trackTaskCompleted(isDone) {
+  const today = getTodayDateString();
+  const log = await getAnalyticsLog();
+  if (log[today]) {
+    if (isDone) {
+      log[today].tasksCompleted += 1;
+    } else {
+      log[today].tasksCompleted = Math.max(0, log[today].tasksCompleted - 1);
+    }
+    await saveAnalyticsLog(log);
+  }
+}
+
+async function trackPomodoroSession() {
+  const today = getTodayDateString();
+  const log = await getAnalyticsLog();
+  if (log[today]) {
+    log[today].pomodoroSessions += 1;
+    await saveAnalyticsLog(log);
+  }
+}
+
+async function trackFocusSet(text, streakCount) {
+  const today = getTodayDateString();
+  const log = await getAnalyticsLog();
+  if (log[today]) {
+    log[today].focusSet = true;
+    log[today].focusText = text;
+    log[today].streakCount = streakCount;
+    await saveAnalyticsLog(log);
+  }
+}
+
+/* ════════════════════════════════════════
+   Phase 9 — Analytics Dashboard
+   ════════════════════════════════════════ */
+
+const analyticsBtnEl = document.getElementById('analyticsBtn');
+const analyticsOverlayEl = document.getElementById('analyticsOverlay');
+const analyticsPanelEl = document.getElementById('analyticsPanel');
+const analyticsCloseBtnEl = document.getElementById('analyticsClose');
+const analyticsKpiRowEl = document.getElementById('analyticsKpiRow');
+const analyticsPanelBodyEl = document.getElementById('analyticsPanelBody');
+const analyticsChartsEl = document.getElementById('analyticsCharts');
+const analyticsCalendarEl = document.getElementById('analyticsCalendar');
+
+let chartsInstances = [];
+
+function openAnalytics() {
+  if (analyticsOverlayEl) analyticsOverlayEl.classList.add('analytics-overlay--visible');
+  if (analyticsPanelEl) analyticsPanelEl.classList.add('analytics-panel--open');
+  renderAnalytics();
+}
+
+function closeAnalytics() {
+  if (analyticsOverlayEl) analyticsOverlayEl.classList.remove('analytics-overlay--visible');
+  if (analyticsPanelEl) analyticsPanelEl.classList.remove('analytics-panel--open');
+}
+
+function calculateKPIs(log) {
+  const dates = Object.keys(log).sort();
+  const last90 = dates.slice(-90);
+
+  const totalFocusSeconds = last90.reduce((sum, d) => sum + (log[d].timeInExtension || 0), 0);
+  const totalHours = (totalFocusSeconds / 3600).toFixed(1);
+
+  const totalTasks = last90.reduce((sum, d) => sum + (log[d].tasksCompleted || 0), 0);
+  const totalPomodoros = last90.reduce((sum, d) => sum + (log[d].pomodoroSessions || 0), 0);
+
+  const dayTotals = {};
+  last90.forEach(d => {
+    const day = log[d].dayOfWeek;
+    dayTotals[day] = (dayTotals[day] || 0) + (log[d].timeInExtension || 0);
+  });
+  const mostProductiveDay = Object.entries(dayTotals).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+  const bestStreak = last90.length > 0 ? Math.max(...last90.map(d => log[d].streakCount || 0)) : 0;
+  const streakCount = last90.length > 0 ? log[last90[last90.length-1]].streakCount || 0 : 0;
+
+  return { totalHours, totalTasks, totalPomodoros, mostProductiveDay, bestStreak, streakCount };
+}
+
+async function renderAnalytics() {
+  const log = await getAnalyticsLog();
+  const dates = Object.keys(log).sort();
+  
+  if (!analyticsPanelBodyEl) return;
+
+  // Empty State Check
+  if (dates.length === 0) {
+    analyticsKpiRowEl.style.display = 'none';
+    analyticsChartsEl.style.display = 'none';
+    analyticsCalendarEl.style.display = 'none';
+    
+    let emptyEl = document.getElementById('analyticsEmptyState');
+    if (!emptyEl) {
+      emptyEl = document.createElement('div');
+      emptyEl.id = 'analyticsEmptyState';
+      emptyEl.style.textAlign = 'center';
+      emptyEl.style.marginTop = '80px';
+      emptyEl.style.color = 'var(--color-muted)';
+      emptyEl.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 16px;">📊</div>
+        <h3 style="color: var(--color-white); margin-bottom: 8px;">No data yet!</h3>
+        <p>Start using FocusTab and your analytics will appear here after your first day.</p>
+      `;
+      analyticsPanelBodyEl.appendChild(emptyEl);
+    }
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  // Hide empty state if exists, show sections
+  const emptyEl = document.getElementById('analyticsEmptyState');
+  if (emptyEl) emptyEl.style.display = 'none';
+  
+  analyticsKpiRowEl.style.display = 'grid';
+  analyticsChartsEl.style.display = 'flex';
+  analyticsCalendarEl.style.display = 'block';
+
+  const kpis = calculateKPIs(log);
+
+  if (analyticsKpiRowEl) {
+    analyticsKpiRowEl.innerHTML = `
+      <div class="kpi-card">
+        <span class="kpi-card__icon">⏱️</span>
+        <span class="kpi-card__value">${kpis.totalHours}</span>
+        <span class="kpi-card__label">Total Focus Time</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__icon">🔥</span>
+        <span class="kpi-card__value">${kpis.streakCount}</span>
+        <span class="kpi-card__label">Current Streak</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__icon">🏆</span>
+        <span class="kpi-card__value">${kpis.bestStreak}</span>
+        <span class="kpi-card__label">Best Streak</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__icon">✅</span>
+        <span class="kpi-card__value">${kpis.totalTasks}</span>
+        <span class="kpi-card__label">Tasks Completed</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__icon">🍅</span>
+        <span class="kpi-card__value">${kpis.totalPomodoros}</span>
+        <span class="kpi-card__label">Pomodoro Sessions</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__icon">📅</span>
+        <span class="kpi-card__value" style="font-size: 1.4rem; padding-top: 5px;">${kpis.mostProductiveDay.slice(0,3)}</span>
+        <span class="kpi-card__label">Most Productive Day</span>
+      </div>
+    `;
+  }
+
+  renderCharts(log, dates);
+  renderCalendar(log, dates);
+}
+
+function renderCharts(log, dates) {
+  const last30 = dates.slice(-30);
+  const labels = last30.map(d => d.slice(5).replace('-', '/'));
+  
+  const focusData = last30.map(d => Math.floor((log[d].timeInExtension || 0) / 60));
+  const tasksData = last30.map(d => log[d].tasksCompleted || 0);
+  const pomodoroData = last30.map(d => log[d].pomodoroSessions || 0);
+
+  chartsInstances.forEach(c => c.destroy());
+  chartsInstances = [];
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'rgba(255, 255, 255, 0.5)' } },
+      y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'rgba(255, 255, 255, 0.5)' }, beginAtZero: true }
+    }
+  };
+
+  if (window.Chart) {
+    Chart.defaults.color = 'rgba(255, 255, 255, 0.5)';
+    Chart.defaults.font.family = 'Inter';
+
+    const ctxFocus = document.getElementById('chartFocusTime')?.getContext('2d');
+    if (ctxFocus) {
+      chartsInstances.push(new Chart(ctxFocus, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: focusData, backgroundColor: 'rgba(100, 180, 255, 0.7)', borderRadius: 4 }] },
+        options: chartOptions
+      }));
+    }
+
+    const ctxTasks = document.getElementById('chartTasks')?.getContext('2d');
+    if (ctxTasks) {
+      chartsInstances.push(new Chart(ctxTasks, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: tasksData, backgroundColor: 'rgba(100, 220, 130, 0.7)', borderRadius: 4 }] },
+        options: chartOptions
+      }));
+    }
+
+    const ctxPomodoro = document.getElementById('chartPomodoro')?.getContext('2d');
+    if (ctxPomodoro) {
+      chartsInstances.push(new Chart(ctxPomodoro, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: pomodoroData, backgroundColor: 'rgba(255, 150, 100, 0.7)', borderRadius: 4 }] },
+        options: chartOptions
+      }));
+    }
+  }
+}
+
+function renderCalendar(log, dates) {
+  const gridEl = document.getElementById('calendarGrid');
+  if (!gridEl) return;
+  gridEl.innerHTML = '';
+  
+  const today = getTodayDateString();
+  const d = new Date();
+  const past90Dates = [];
+  
+  for (let i = 89; i >= 0; i--) {
+    const temp = new Date(d);
+    temp.setDate(temp.getDate() - i);
+    past90Dates.push(`${temp.getFullYear()}-${String(temp.getMonth()+1).padStart(2,'0')}-${String(temp.getDate()).padStart(2,'0')}`);
+  }
+
+  past90Dates.forEach(dateStr => {
+    const dayData = log[dateStr];
+    const isToday = dateStr === today;
+    const isActive = dayData && dayData.focusSet;
+    const focusText = dayData && dayData.focusText ? dayData.focusText : 'No focus set';
+    
+    const dateObj = new Date(dateStr + 'T12:00:00');
+    const dateLabel = `${MONTH_NAMES[dateObj.getMonth()]} ${dateObj.getDate()}`;
+
+    const div = document.createElement('div');
+    div.className = `calendar-day${isActive ? ' calendar-day--active' : ''}${isToday ? ' calendar-day--today' : ''}`;
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'calendar-tooltip';
+    tooltip.textContent = `${dateLabel} — Focus: ${focusText}`;
+    
+    div.appendChild(tooltip);
+    gridEl.appendChild(div);
+  });
+}
+
+function initAnalytics() {
+  if (analyticsBtnEl) analyticsBtnEl.addEventListener('click', openAnalytics);
+  if (analyticsCloseBtnEl) analyticsCloseBtnEl.addEventListener('click', closeAnalytics);
+  if (analyticsOverlayEl) analyticsOverlayEl.addEventListener('click', closeAnalytics);
+}
+
+/* ════════════════════════════════════════
    Storage Seeding
    ════════════════════════════════════════ */
 
@@ -769,6 +1123,8 @@ async function init() {
   initDailyQuote();
   await initStreak();
   initPomodoro();
+  await initDailyAnalytics();
+  initAnalytics();
 }
 
 if (document.readyState === 'loading') {

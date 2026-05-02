@@ -918,3 +918,266 @@ body {
   min-height: 1em;
   transition: opacity 0.3s ease;
 }
+
+/* ════════════ PHASE 9: Analytics Dashboard ════════════ */
+
+.topbar-left {
+  position: fixed;
+  top: 28px;
+  left: 28px;
+  z-index: 50;
+}
+
+.analytics-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-pill);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-default);
+}
+
+.analytics-btn:hover {
+  color: var(--color-white);
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.analytics-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 299;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-slow);
+}
+
+.analytics-overlay--visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.analytics-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(8, 8, 18, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateY(100%);
+  transition: transform var(--transition-slow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.analytics-panel--open {
+  transform: translateY(0);
+}
+
+.analytics-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 40px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.analytics-panel__title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--color-white);
+  letter-spacing: 0.02em;
+}
+
+.analytics-panel__close {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: color var(--transition-default), background var(--transition-default);
+}
+
+.analytics-panel__close:hover {
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.analytics-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 40px 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.analytics-panel__body::-webkit-scrollbar { width: 4px; }
+.analytics-panel__body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.analytics-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+  margin-top: 8px;
+}
+
+.analytics-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-card);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  animation: cardFadeIn 0.35s ease;
+}
+
+.kpi-card__icon {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+.kpi-card__value {
+  font-size: 1.8rem;
+  font-weight: 200;
+  color: var(--color-white);
+  line-height: 1;
+}
+
+.kpi-card__label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.analytics-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-card);
+  padding: 20px;
+}
+
+.chart-card__title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+}
+
+.chart-card canvas {
+  max-height: 180px;
+}
+
+.analytics-calendar {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-card);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.calendar-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  position: relative;
+}
+
+.calendar-day--active {
+  background: rgba(100, 220, 130, 0.8);
+}
+
+.calendar-day--today {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.calendar-day:hover {
+  transform: scale(1.2);
+}
+
+.calendar-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--color-white);
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 300;
+}
+
+.calendar-day:hover .calendar-tooltip {
+  opacity: 1;
+}
